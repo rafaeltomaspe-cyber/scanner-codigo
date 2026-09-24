@@ -72,7 +72,7 @@
 
     function iniciar() {
 
-      console.log("ZXing:", window.ZXing);
+      console.log("ZXingBrowser:", window.ZXingBrowser);
 
       if (!window.ZXingBrowser) {
 
@@ -88,7 +88,7 @@
 
 
       lector =
-        new ZXing.BrowserMultiFormatReader();
+        new ZXingBrowser.BrowserMultiFormatReader();
 
 
       lector
