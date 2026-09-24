@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Escáner</title>
+  <title>Escáner de código de barras</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       background: #000;
@@ -15,30 +19,31 @@
       text-align: center;
     }
 
-    video {
+    #estado {
+      padding: 18px;
+      font-size: 18px;
+      background: rgba(0,0,0,.85);
+    }
+
+    #video {
       width: 100%;
-      height: 75vh;
+      height: 70vh;
       object-fit: cover;
       background: #000;
     }
 
-    #estado {
-      padding: 20px;
-      font-size: 18px;
-    }
-
     #resultado {
-      font-size: 24px;
+      padding: 15px;
+      font-size: 22px;
       font-weight: bold;
-      padding: 20px;
     }
 
     button {
-      padding: 15px 30px;
-      margin: 10px;
-      font-size: 18px;
+      padding: 14px 25px;
+      margin: 8px;
       border: none;
       border-radius: 8px;
+      font-size: 17px;
     }
 
     #btnIniciar {
@@ -60,19 +65,31 @@
     Pulsa "Activar cámara"
   </div>
 
-  <video id="video" autoplay muted playsinline></video>
+  <video
+    id="video"
+    autoplay
+    muted
+    playsinline>
+  </video>
 
   <div id="resultado"></div>
 
-  <button id="btnIniciar" onclick="iniciar()">
+  <button
+    id="btnIniciar"
+    onclick="iniciarScanner()">
     📷 Activar cámara
   </button>
 
-  <button id="btnCancelar" onclick="volver()">
+  <button
+    id="btnCancelar"
+    onclick="volver()">
     Cancelar
   </button>
 
+
+  <!-- ZXing LOCAL -->
   <script src="./zxing-browser.min.js"></script>
+
 
   <script>
 
@@ -92,70 +109,56 @@
     let controles = null;
 
 
-    async function iniciar() {
+    function iniciarScanner() {
 
       btnIniciar.disabled = true;
 
       estado.innerHTML =
         "Solicitando acceso a la cámara...";
 
-      try {
 
-        // Primero solicitamos directamente
-        // permiso a la cámara.
-
-        const stream =
-          await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: {
-                ideal: "environment"
-              }
-            },
-            audio: false
-          });
-
-        // Mostramos la cámara.
-
-        video.srcObject = stream;
-
-        await video.play();
-
-
-        // Verificar ZXing
-
-        if (!window.ZXingBrowser) {
-
-          throw new Error(
-            "ZXingBrowser no está cargado."
-          );
-        }
-
+      if (!window.ZXingBrowser) {
 
         estado.innerHTML =
-          "📷 Apunta al código de barras";
+          "❌ No se pudo cargar ZXingBrowser.";
 
+        btnIniciar.disabled = false;
+
+        return;
+      }
+
+
+      try {
 
         lector =
           new ZXingBrowser.BrowserMultiFormatReader();
 
 
         controles =
-          await lector.decodeFromConstraints(
+          lector.decodeFromConstraints(
+
             {
               video: {
+
                 facingMode: {
                   ideal: "environment"
                 },
+
                 width: {
                   ideal: 1920
                 },
+
                 height: {
                   ideal: 1080
                 }
+
               },
+
               audio: false
             },
+
             video,
+
             function(resultadoCodigo, error) {
 
               if (resultadoCodigo) {
@@ -163,26 +166,35 @@
                 const codigo =
                   resultadoCodigo.getText();
 
-                console.log(
-                  "Código detectado:",
-                  codigo
-                );
 
                 resultado.innerHTML =
                   "Código detectado:<br>" +
                   codigo;
 
-                detener();
+
+                estado.innerHTML =
+                  "✅ Código encontrado";
+
+
+                detenerScanner();
+
 
                 setTimeout(function() {
 
                   enviarCodigo(codigo);
 
                 }, 500);
+
               }
 
             }
+
           );
+
+
+        estado.innerHTML =
+          "📷 Apunta al código de barras";
+
 
       } catch (error) {
 
@@ -191,14 +203,15 @@
         btnIniciar.disabled = false;
 
         estado.innerHTML =
-          "❌ Error al iniciar la cámara:<br><br>" +
+          "❌ Error al iniciar la cámara:<br>" +
           error.message;
 
       }
+
     }
 
 
-    function detener() {
+    function detenerScanner() {
 
       try {
 
@@ -214,6 +227,7 @@
           controles = null;
         }
 
+
         if (lector) {
 
           if (
@@ -225,6 +239,7 @@
 
           lector = null;
         }
+
 
         if (video.srcObject) {
 
@@ -244,6 +259,7 @@
         console.log(error);
 
       }
+
     }
 
 
@@ -253,6 +269,7 @@
         new URLSearchParams(
           window.location.search
         );
+
 
       const retorno =
         parametros.get("retorno");
@@ -271,6 +288,7 @@
       const url =
         decodeURIComponent(retorno);
 
+
       const separador =
         url.includes("?")
           ? "&"
@@ -282,17 +300,20 @@
         separador +
         "barcode=" +
         encodeURIComponent(codigo);
+
     }
 
 
     function volver() {
 
-      detener();
+      detenerScanner();
+
 
       const parametros =
         new URLSearchParams(
           window.location.search
         );
+
 
       const retorno =
         parametros.get("retorno");
@@ -308,6 +329,7 @@
         window.history.back();
 
       }
+
     }
 
   </script>
