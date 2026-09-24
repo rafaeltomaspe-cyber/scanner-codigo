@@ -1,768 +1,329 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
->
-
-<title>Escanear código de barras</title>
-
-<!-- ZXING -->
-<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
-
-<style>
-
-*{
-  box-sizing:border-box;
-}
-
-html,
-body{
-
-  margin:0;
-  padding:0;
-
-  width:100%;
-  height:100%;
-
-  background:#000;
-
-  overflow:hidden;
-
-  font-family:Arial,sans-serif;
-
-  color:#fff;
-
-}
-
-#contenedor{
-
-  position:fixed;
-
-  inset:0;
-
-  background:#000;
-
-}
-
-#video{
-
-  position:absolute;
-
-  inset:0;
-
-  width:100%;
-  height:100%;
-
-  object-fit:cover;
-
-  background:#000;
-
-}
-
-#superior{
-
-  position:absolute;
-
-  top:0;
-  left:0;
-  right:0;
-
-  padding:20px;
-
-  text-align:center;
-
-  background:
-    linear-gradient(
-      rgba(0,0,0,.85),
-      rgba(0,0,0,0)
-    );
-
-  z-index:10;
-
-}
-
-#titulo{
-
-  font-size:21px;
-
-  font-weight:bold;
-
-}
-
-#estado{
-
-  margin-top:8px;
-
-  font-size:14px;
-
-  opacity:.9;
-
-}
-
-#marco{
-
-  position:absolute;
-
-  width:85%;
-
-  max-width:450px;
-
-  height:180px;
-
-  left:50%;
-  top:50%;
-
-  transform:
-    translate(-50%,-50%);
-
-  border:
-    3px solid #00ff66;
-
-  border-radius:14px;
-
-  z-index:5;
-
-  box-shadow:
-    0 0 20px
-    rgba(0,255,100,.4);
-
-}
-
-#linea{
-
-  position:absolute;
-
-  left:5%;
-  right:5%;
-
-  top:10%;
-
-  height:2px;
-
-  background:#00ff66;
-
-  box-shadow:
-    0 0 8px #00ff66;
-
-  animation:mover 1.5s infinite;
-
-}
-
-@keyframes mover{
-
-  0%{
-    top:10%;
-  }
-
-  50%{
-    top:90%;
-  }
-
-  100%{
-    top:10%;
-  }
-
-}
-
-#inferior{
-
-  position:absolute;
-
-  bottom:0;
-
-  left:0;
-  right:0;
-
-  padding:25px;
-
-  text-align:center;
-
-  background:
-    linear-gradient(
-      rgba(0,0,0,0),
-      rgba(0,0,0,.9)
-    );
-
-  z-index:10;
-
-}
-
-#resultado{
-
-  display:none;
-
-  margin-bottom:15px;
-
-  padding:12px;
-
-  border-radius:8px;
-
-  background:
-    rgba(0,0,0,.75);
-
-  font-size:21px;
-
-  font-weight:bold;
-
-}
-
-button{
-
-  width:100%;
-
-  max-width:350px;
-
-  padding:15px;
-
-  border:none;
-
-  border-radius:10px;
-
-  font-size:17px;
-
-  font-weight:bold;
-
-  background:#fff;
-
-  color:#000;
-
-  cursor:pointer;
-
-}
-
-#error{
-
-  display:none;
-
-  position:absolute;
-
-  left:20px;
-  right:20px;
-
-  top:50%;
-
-  transform:
-    translateY(-50%);
-
-  padding:20px;
-
-  background:
-    rgba(150,0,0,.95);
-
-  border-radius:12px;
-
-  text-align:center;
-
-  z-index:30;
-
-  line-height:1.5;
-
-}
-
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Escáner de código de barras</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #contenedor {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    #marco {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 85%;
+      max-width: 500px;
+      height: 150px;
+      transform: translate(-50%, -50%);
+      border: 3px solid #00ff66;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,255,100,.5);
+      pointer-events: none;
+    }
+
+    #estado {
+      position: fixed;
+      top: 20px;
+      left: 10px;
+      right: 10px;
+      padding: 12px;
+      text-align: center;
+      background: rgba(0,0,0,.7);
+      border-radius: 8px;
+      font-size: 16px;
+      z-index: 10;
+    }
+
+    #resultado {
+      position: fixed;
+      bottom: 90px;
+      left: 10px;
+      right: 10px;
+      padding: 15px;
+      background: rgba(0,0,0,.85);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      display: none;
+      z-index: 10;
+    }
+
+    #cancelar {
+      position: fixed;
+      bottom: 20px;
+      left: 10%;
+      width: 80%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      color: #000;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 20;
+    }
+  </style>
 </head>
-
 
 <body>
 
 <div id="contenedor">
 
-  <video
-    id="video"
-    autoplay
-    muted
-    playsinline
-  ></video>
+  <video id="video" autoplay muted playsinline></video>
 
+  <div id="marco"></div>
 
-  <div id="superior">
-
-    <div id="titulo">
-      Escanear código de barras
-    </div>
-
-    <div id="estado">
-      Iniciando lector...
-    </div>
-
+  <div id="estado">
+    Iniciando lector...
   </div>
 
+  <div id="resultado"></div>
 
-  <div id="marco">
-
-    <div id="linea"></div>
-
-  </div>
-
-
-  <div id="inferior">
-
-    <div id="resultado"></div>
-
-    <button
-      onclick="cerrarScanner()"
-    >
-      Cancelar
-    </button>
-
-  </div>
-
-
-  <div id="error">
-
-    <div id="mensajeError"></div>
-
-  </div>
+  <button id="cancelar" onclick="volver()">
+    Cancelar
+  </button>
 
 </div>
 
+<!-- ZXing LOCAL -->
+<script src="./zxing-browser.min.js"></script>
 
 <script>
 
-var video =
-  document.getElementById('video');
+  let lector = null;
+  let controles = null;
 
-var estado =
-  document.getElementById('estado');
+  const video = document.getElementById("video");
+  const estado = document.getElementById("estado");
+  const resultado = document.getElementById("resultado");
 
-var resultado =
-  document.getElementById('resultado');
+  function mostrarEstado(texto) {
+    estado.textContent = texto;
+  }
 
-var errorBox =
-  document.getElementById('error');
+  function iniciarScanner() {
 
-var mensajeError =
-  document.getElementById('mensajeError');
+    // Verificar que ZXing realmente cargó
+    if (typeof ZXing === "undefined") {
 
-var lector = null;
-
-var controles = null;
-
-var procesando = false;
-
-
-/* =========================
-   PARÁMETROS
-========================= */
-
-var parametros =
-  new URLSearchParams(
-    window.location.search
-  );
-
-var retorno =
-  parametros.get('retorno') || '';
-
-
-/* =========================
-   INICIAR
-========================= */
-
-async function iniciarScanner(){
-
-  try{
-
-    estado.textContent =
-      'Comprobando lector...';
-
-
-    /*
-      Comprobar que ZXing
-      realmente cargó.
-    */
-
-    if(
-      typeof ZXing === 'undefined'
-    ){
-
-      throw new Error(
-        'ZXing no se cargó desde el servidor.'
+      mostrarEstado(
+        "ERROR: No se pudo cargar ZXing."
       );
 
-    }
-
-
-    if(
-      !ZXing.BrowserMultiFormatReader
-    ){
-
-      throw new Error(
-        'BrowserMultiFormatReader no está disponible.'
+      alert(
+        "No se pudo cargar el lector.\n\n" +
+        "Verifica que zxing-browser.min.js esté " +
+        "en el mismo repositorio que scanner.html."
       );
 
+      return;
     }
 
+    mostrarEstado(
+      "Apunta la cámara al código de barras..."
+    );
 
-    estado.textContent =
-      'Activando cámara...';
+    try {
 
+      lector = new ZXing.BrowserMultiFormatReader();
 
-    lector =
-      new ZXing.BrowserMultiFormatReader();
-
-
-    /*
-      No necesitamos manejar
-      manualmente getUserMedia.
-
-      ZXing se encarga de seleccionar
-      la cámara y realizar la lectura.
-    */
-
-    controles =
-      await lector.decodeFromConstraints(
-
-        {
-
-          video:{
-
-            facingMode:{
-              ideal:'environment'
-            },
-
-            width:{
-              ideal:1280
-            },
-
-            height:{
-              ideal:720
-            }
-
+      const restricciones = {
+        video: {
+          facingMode: {
+            ideal: "environment"
           },
-
-          audio:false
-
+          width: {
+            ideal: 1920
+          },
+          height: {
+            ideal: 1080
+          }
         },
+        audio: false
+      };
 
+      controles = lector.decodeFromConstraints(
+        restricciones,
         video,
+        function(resultado, error) {
 
-        function(
-          lectura,
-          error,
-          controlesScanner
-        ){
+          if (resultado) {
 
-          if(procesando){
+            const codigo =
+              resultado.getText();
 
-            return;
+            mostrarResultado(codigo);
 
-          }
+            detenerScanner();
 
-
-          if(lectura){
-
-            var codigo =
-              lectura
-                .getText()
-                .trim();
-
-
-            if(!codigo){
-
-              return;
-
-            }
-
-
-            procesando = true;
-
-
-            codigoDetectado(
-              codigo
-            );
-
+            setTimeout(function() {
+              regresarAplicacion(codigo);
+            }, 500);
           }
 
         }
-
       );
 
+    } catch (error) {
 
-    estado.textContent =
-      'Buscando código...';
+      console.error(error);
 
-  }
-
-  catch(error){
-
-    console.error(
-      'ERROR SCANNER:',
-      error
-    );
-
-
-    mostrarError(
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================
-   CÓDIGO DETECTADO
-========================= */
-
-function codigoDetectado(
-  codigo
-){
-
-  estado.textContent =
-    'Código encontrado';
-
-
-  resultado.style.display =
-    'block';
-
-
-  resultado.textContent =
-    codigo;
-
-
-  if(
-    navigator.vibrate
-  ){
-
-    navigator.vibrate(
-      [100,50,100]
-    );
-
-  }
-
-
-  setTimeout(
-    function(){
-
-      regresarAplicacion(
-        codigo
+      mostrarEstado(
+        "Error al iniciar el lector."
       );
 
-    },
-    500
-  );
-
-}
-
-
-/* =========================
-   REGRESAR A APPS SCRIPT
-========================= */
-
-function regresarAplicacion(
-  codigo
-){
-
-  detenerScanner();
-
-
-  if(!retorno){
-
-    alert(
-      'Código detectado: ' +
-      codigo
-    );
-
-    return;
-
-  }
-
-
-  var separador =
-    retorno.includes('?')
-      ? '&'
-      : '?';
-
-
-  var url =
-
-    retorno +
-
-    separador +
-
-    'barcode=' +
-
-    encodeURIComponent(
-      codigo
-    );
-
-
-  window.location.href =
-    url;
-
-}
-
-
-/* =========================
-   DETENER
-========================= */
-
-function detenerScanner(){
-
-  try{
-
-    if(controles){
-
-      controles.stop();
-
-      controles = null;
-
+      alert(
+        "Error al iniciar el lector:\n\n" +
+        error.message
+      );
     }
-
-  }
-
-  catch(e){
-
-    console.log(e);
-
   }
 
 
-  try{
+  function mostrarResultado(codigo) {
 
-    if(lector){
+    resultado.style.display = "block";
 
-      lector.reset();
-
-      lector = null;
-
-    }
-
-  }
-
-  catch(e){
-
-    console.log(e);
-
+    resultado.innerHTML =
+      "Código detectado:<br><br>" +
+      codigo;
   }
 
 
-  if(
-    video.srcObject
-  ){
+  function detenerScanner() {
 
-    video.srcObject
-      .getTracks()
-      .forEach(
-        function(track){
+    try {
 
-          track.stop();
+      if (controles) {
 
+        if (typeof controles.stop === "function") {
+          controles.stop();
         }
-      );
 
-    video.srcObject = null;
+        controles = null;
+      }
 
+      if (lector) {
+
+        if (typeof lector.reset === "function") {
+          lector.reset();
+        }
+
+        lector = null;
+      }
+
+      if (video.srcObject) {
+
+        video.srcObject
+          .getTracks()
+          .forEach(function(track) {
+            track.stop();
+          });
+
+        video.srcObject = null;
+      }
+
+    } catch (error) {
+
+      console.log(error);
+    }
   }
 
-}
 
+  function regresarAplicacion(codigo) {
 
-/* =========================
-   ERROR
-========================= */
+    const parametros =
+      new URLSearchParams(
+        window.location.search
+      );
 
-function mostrarError(
-  error
-){
+    const retorno =
+      parametros.get("retorno");
 
-  var mensaje =
-    error &&
-    error.message
-      ? error.message
-      : String(error);
+    if (!retorno) {
 
+      alert(
+        "No se encontró la dirección de retorno."
+      );
 
-  mensajeError.innerHTML =
+      return;
+    }
 
-    '<strong>' +
+    const url =
+      decodeURIComponent(retorno);
 
-      'No se pudo iniciar el lector.'
-
-    + '</strong><br><br>' +
-
-    '<small>' +
-
-      mensaje
-
-    + '</small>';
-
-
-  errorBox.style.display =
-    'block';
-
-
-  estado.textContent =
-    'Error del lector';
-
-}
-
-
-/* =========================
-   CANCELAR
-========================= */
-
-function cerrarScanner(){
-
-  detenerScanner();
-
-
-  if(retorno){
-
-    var separador =
-      retorno.includes('?')
-        ? '&'
-        : '?';
-
+    const separador =
+      url.includes("?") ? "&" : "?";
 
     window.location.href =
-
-      retorno +
-
+      url +
       separador +
-
-      'cancelado=1';
-
+      "barcode=" +
+      encodeURIComponent(codigo);
   }
 
-  else{
 
-    window.history.back();
-
-  }
-
-}
-
-
-/* =========================
-   LIMPIEZA
-========================= */
-
-window.addEventListener(
-  'beforeunload',
-  function(){
+  function volver() {
 
     detenerScanner();
 
+    const parametros =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const retorno =
+      parametros.get("retorno");
+
+    if (retorno) {
+
+      window.location.href =
+        decodeURIComponent(retorno);
+
+    } else {
+
+      window.history.back();
+
+    }
   }
-);
 
 
-/* =========================
-   ARRANCAR
-========================= */
+  window.addEventListener(
+    "beforeunload",
+    detenerScanner
+  );
 
-iniciarScanner();
+
+  iniciarScanner();
 
 </script>
 
 </body>
-
 </html>
