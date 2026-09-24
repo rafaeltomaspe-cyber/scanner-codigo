@@ -265,25 +265,30 @@
 
     function enviarCodigo(codigo) {
 
-      const parametros =
-        new URLSearchParams(
-          window.location.search
-        );
+  // Enviar el código a la ventana que abrió el scanner
+  if (window.opener) {
 
+    window.opener.postMessage(
+      {
+        tipo: "codigoBarras",
+        codigo: codigo
+      },
+      "https://script.google.com"
+    );
 
-      const retorno =
-        parametros.get("retorno");
+    // Cerrar la pestaña del scanner
+    setTimeout(function() {
+      window.close();
+    }, 300);
 
+    return;
+  }
 
-      if (!retorno) {
-
-        estado.innerHTML =
-          "Código detectado: " +
-          codigo;
-
-        return;
-      }
-
+  // Si no existe ventana principal,
+  // mostrar el código.
+  estado.innerHTML =
+    "Código detectado: " + codigo;
+}
 
       const url =
         decodeURIComponent(retorno);
