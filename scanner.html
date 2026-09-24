@@ -370,17 +370,42 @@
 
     function enviarCodigo(codigo) {
 
-      console.log(
-        "Enviando código:",
-        codigo
-      );
+  console.log(
+    "Enviando código a Apps Script:",
+    codigo
+  );
 
+  if (window.opener) {
 
-      // Verificar que esta pestaña
-      // fue abierta desde Apps Script
+    window.opener.postMessage(
+      {
+        tipo: "codigoBarras",
+        codigo: codigo
+      },
+      "*"
+    );
 
-      if (window.opener) {
+    estado.innerHTML =
+      "✅ Código enviado";
 
+    resultado.innerHTML =
+      codigo;
+
+    setTimeout(function() {
+
+      window.close();
+
+    }, 700);
+
+    return;
+  }
+
+  estado.innerHTML =
+    "Código detectado";
+
+  resultado.innerHTML =
+    codigo;
+}
 
         try {
 
