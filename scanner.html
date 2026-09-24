@@ -74,12 +74,12 @@
 
       console.log("ZXing:", window.ZXing);
 
-      if (!window.ZXing) {
+      if (!window.ZXingBrowser) {
 
-        estado.innerHTML =
-          "❌ ZXing NO está cargado";
+      estado.innerHTML =
+        "❌ ZXingBrowser NO está cargado";
 
-        return;
+      return;
       }
 
 
