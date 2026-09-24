@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Escáner de código de barras</title>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
@@ -22,7 +29,7 @@
     #estado {
       padding: 18px;
       font-size: 18px;
-      background: rgba(0,0,0,.85);
+      background: rgba(0, 0, 0, 0.85);
     }
 
     #video {
@@ -44,6 +51,7 @@
       border: none;
       border-radius: 8px;
       font-size: 17px;
+      cursor: pointer;
     }
 
     #btnIniciar {
@@ -52,18 +60,27 @@
       font-weight: bold;
     }
 
+    #btnIniciar:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+
     #btnCancelar {
       background: white;
       color: black;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
   <div id="estado">
     Pulsa "Activar cámara"
   </div>
+
 
   <video
     id="video"
@@ -72,22 +89,34 @@
     playsinline>
   </video>
 
+
   <div id="resultado"></div>
+
 
   <button
     id="btnIniciar"
+    type="button"
     onclick="iniciarScanner()">
+
     📷 Activar cámara
+
   </button>
+
 
   <button
     id="btnCancelar"
+    type="button"
     onclick="volver()">
+
     Cancelar
+
   </button>
 
 
-  <!-- ZXing LOCAL -->
+  <!-- =====================================================
+       ZXING LOCAL
+       ===================================================== -->
+
   <script src="./zxing-browser.min.js"></script>
 
 
@@ -105,24 +134,45 @@
     const btnIniciar =
       document.getElementById("btnIniciar");
 
+
     let lector = null;
+
     let controles = null;
 
 
+    // =====================================================
+    // INICIAR SCANNER
+    // =====================================================
+
     function iniciarScanner() {
 
+      console.log(
+        "Iniciando lector..."
+      );
+
+
       btnIniciar.disabled = true;
+
 
       estado.innerHTML =
         "Solicitando acceso a la cámara...";
 
 
-      if (!window.ZXingBrowser) {
+      // Verificar que ZXing esté cargado
+
+      if (
+        typeof window.ZXingBrowser ===
+        "undefined"
+      ) {
 
         estado.innerHTML =
-          "❌ No se pudo cargar ZXingBrowser.";
+          "❌ No se pudo cargar ZXing.";
 
         btnIniciar.disabled = false;
+
+        console.error(
+          "ZXingBrowser no está disponible"
+        );
 
         return;
       }
@@ -134,32 +184,45 @@
           new ZXingBrowser.BrowserMultiFormatReader();
 
 
+        const restricciones = {
+
+          video: {
+
+            facingMode: {
+              ideal: "environment"
+            },
+
+            width: {
+              ideal: 1920
+            },
+
+            height: {
+              ideal: 1080
+            }
+
+          },
+
+          audio: false
+
+        };
+
+
         controles =
           lector.decodeFromConstraints(
 
-            {
-              video: {
-
-                facingMode: {
-                  ideal: "environment"
-                },
-
-                width: {
-                  ideal: 1920
-                },
-
-                height: {
-                  ideal: 1080
-                }
-
-              },
-
-              audio: false
-            },
+            restricciones,
 
             video,
 
-            function(resultadoCodigo, error) {
+            function(
+              resultadoCodigo,
+              error
+            ) {
+
+
+              // =================================================
+              // CÓDIGO DETECTADO
+              // =================================================
 
               if (resultadoCodigo) {
 
@@ -167,23 +230,35 @@
                   resultadoCodigo.getText();
 
 
-                resultado.innerHTML =
-                  "Código detectado:<br>" +
-                  codigo;
+                console.log(
+                  "Código detectado:",
+                  codigo
+                );
 
 
                 estado.innerHTML =
-                  "✅ Código encontrado";
+                  "✅ Código detectado";
 
+
+                resultado.innerHTML =
+                  codigo;
+
+
+                // Detener cámara
 
                 detenerScanner();
 
 
-                setTimeout(function() {
+                // Enviar código a Apps Script
 
-                  enviarCodigo(codigo);
+                setTimeout(
+                  function() {
 
-                }, 500);
+                    enviarCodigo(codigo);
+
+                  },
+                  300
+                );
 
               }
 
@@ -198,9 +273,14 @@
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          "Error:",
+          error
+        );
+
 
         btnIniciar.disabled = false;
+
 
         estado.innerHTML =
           "❌ Error al iniciar la cámara:<br>" +
@@ -211,9 +291,14 @@
     }
 
 
+    // =====================================================
+    // DETENER SCANNER
+    // =====================================================
+
     function detenerScanner() {
 
       try {
+
 
         if (controles) {
 
@@ -221,10 +306,13 @@
             typeof controles.stop ===
             "function"
           ) {
+
             controles.stop();
+
           }
 
           controles = null;
+
         }
 
 
@@ -234,100 +322,139 @@
             typeof lector.reset ===
             "function"
           ) {
+
             lector.reset();
+
           }
 
           lector = null;
+
         }
 
 
         if (video.srcObject) {
 
-          video.srcObject
-            .getTracks()
-            .forEach(function(track) {
+          const tracks =
+            video.srcObject.getTracks();
+
+
+          tracks.forEach(
+            function(track) {
 
               track.stop();
 
-            });
+            }
+          );
+
 
           video.srcObject = null;
+
         }
+
 
       } catch (error) {
 
-        console.log(error);
+        console.log(
+          "Error deteniendo cámara:",
+          error
+        );
 
       }
 
     }
 
 
+    // =====================================================
+    // ENVIAR CÓDIGO A GOOGLE APPS SCRIPT
+    // =====================================================
+
     function enviarCodigo(codigo) {
 
-  // Enviar el código a la ventana que abrió el scanner
-  if (window.opener) {
-
-    window.opener.postMessage(
-      {
-        tipo: "codigoBarras",
-        codigo: codigo
-      },
-      "https://script.google.com"
-    );
-
-    // Cerrar la pestaña del scanner
-    setTimeout(function() {
-      window.close();
-    }, 300);
-
-    return;
-  }
-
-  // Si no existe ventana principal,
-  // mostrar el código.
-  estado.innerHTML =
-    "Código detectado: " + codigo;
-}
-
-      const url =
-        decodeURIComponent(retorno);
+      console.log(
+        "Enviando código:",
+        codigo
+      );
 
 
-      const separador =
-        url.includes("?")
-          ? "&"
-          : "?";
+      // Verificar que esta pestaña
+      // fue abierta desde Apps Script
+
+      if (window.opener) {
 
 
-      window.location.href =
-        url +
-        separador +
-        "barcode=" +
-        encodeURIComponent(codigo);
+        try {
+
+          window.opener.postMessage(
+
+            {
+              tipo: "codigoBarras",
+              codigo: codigo
+            },
+
+            "https://script.google.com"
+
+          );
+
+
+          estado.innerHTML =
+            "✅ Código enviado";
+
+
+          resultado.innerHTML =
+            codigo;
+
+
+          // Cerrar esta pestaña
+
+          setTimeout(
+            function() {
+
+              window.close();
+
+            },
+            500
+          );
+
+
+          return;
+
+
+        } catch (error) {
+
+          console.error(
+            "Error enviando código:",
+            error
+          );
+
+        }
+
+      }
+
+
+      // Si no existe ventana principal
+
+      estado.innerHTML =
+        "Código detectado";
+
+
+      resultado.innerHTML =
+        codigo;
 
     }
 
+
+    // =====================================================
+    // CANCELAR
+    // =====================================================
 
     function volver() {
 
       detenerScanner();
 
 
-      const parametros =
-        new URLSearchParams(
-          window.location.search
-        );
+      if (window.opener) {
 
-
-      const retorno =
-        parametros.get("retorno");
-
-
-      if (retorno) {
-
-        window.location.href =
-          decodeURIComponent(retorno);
+        window.close();
 
       } else {
 
@@ -337,7 +464,23 @@
 
     }
 
+
+    // =====================================================
+    // LIMPIAR CÁMARA AL SALIR
+    // =====================================================
+
+    window.addEventListener(
+      "beforeunload",
+      function() {
+
+        detenerScanner();
+
+      }
+    );
+
+
   </script>
 
 </body>
+
 </html>
