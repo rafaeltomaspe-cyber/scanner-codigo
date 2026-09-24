@@ -29,7 +29,7 @@
     #estado {
       padding: 18px;
       font-size: 18px;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0,0,0,.85);
     }
 
     #video {
@@ -62,7 +62,6 @@
 
     #btnIniciar:disabled {
       background: #555;
-      cursor: not-allowed;
     }
 
     #btnCancelar {
@@ -113,9 +112,7 @@
   </button>
 
 
-  <!-- =====================================================
-       ZXING LOCAL
-       ===================================================== -->
+  <!-- ZXING LOCAL -->
 
   <script src="./zxing-browser.min.js"></script>
 
@@ -146,33 +143,18 @@
 
     function iniciarScanner() {
 
-      console.log(
-        "Iniciando lector..."
-      );
-
-
       btnIniciar.disabled = true;
-
 
       estado.innerHTML =
         "Solicitando acceso a la cámara...";
 
 
-      // Verificar que ZXing esté cargado
-
-      if (
-        typeof window.ZXingBrowser ===
-        "undefined"
-      ) {
+      if (!window.ZXingBrowser) {
 
         estado.innerHTML =
           "❌ No se pudo cargar ZXing.";
 
         btnIniciar.disabled = false;
-
-        console.error(
-          "ZXingBrowser no está disponible"
-        );
 
         return;
       }
@@ -184,33 +166,29 @@
           new ZXingBrowser.BrowserMultiFormatReader();
 
 
-        const restricciones = {
-
-          video: {
-
-            facingMode: {
-              ideal: "environment"
-            },
-
-            width: {
-              ideal: 1920
-            },
-
-            height: {
-              ideal: 1080
-            }
-
-          },
-
-          audio: false
-
-        };
-
-
         controles =
           lector.decodeFromConstraints(
 
-            restricciones,
+            {
+              video: {
+
+                facingMode: {
+                  ideal: "environment"
+                },
+
+                width: {
+                  ideal: 1920
+                },
+
+                height: {
+                  ideal: 1080
+                }
+
+              },
+
+              audio: false
+
+            },
 
             video,
 
@@ -219,10 +197,6 @@
               error
             ) {
 
-
-              // =================================================
-              // CÓDIGO DETECTADO
-              // =================================================
 
               if (resultadoCodigo) {
 
@@ -244,17 +218,15 @@
                   codigo;
 
 
-                // Detener cámara
-
                 detenerScanner();
 
-
-                // Enviar código a Apps Script
 
                 setTimeout(
                   function() {
 
-                    enviarCodigo(codigo);
+                    regresarAAppsScript(
+                      codigo
+                    );
 
                   },
                   300
@@ -273,14 +245,9 @@
 
       } catch (error) {
 
-        console.error(
-          "Error:",
-          error
-        );
-
+        console.error(error);
 
         btnIniciar.disabled = false;
-
 
         estado.innerHTML =
           "❌ Error al iniciar la cámara:<br>" +
@@ -292,13 +259,12 @@
 
 
     // =====================================================
-    // DETENER SCANNER
+    // DETENER CÁMARA
     // =====================================================
 
     function detenerScanner() {
 
       try {
-
 
         if (controles) {
 
@@ -334,30 +300,23 @@
 
         if (video.srcObject) {
 
-          const tracks =
-            video.srcObject.getTracks();
+          video.srcObject
+            .getTracks()
+            .forEach(
+              function(track) {
 
+                track.stop();
 
-          tracks.forEach(
-            function(track) {
-
-              track.stop();
-
-            }
-          );
-
+              }
+            );
 
           video.srcObject = null;
 
         }
 
-
       } catch (error) {
 
-        console.log(
-          "Error deteniendo cámara:",
-          error
-        );
+        console.log(error);
 
       }
 
@@ -365,105 +324,69 @@
 
 
     // =====================================================
-    // ENVIAR CÓDIGO A GOOGLE APPS SCRIPT
+    // REGRESAR A GOOGLE APPS SCRIPT
     // =====================================================
 
-    function enviarCodigo(codigo) {
+    function regresarAAppsScript(codigo) {
 
-  console.log(
-    "Enviando código a Apps Script:",
-    codigo
-  );
-
-  if (window.opener) {
-
-    window.opener.postMessage(
-      {
-        tipo: "codigoBarras",
-        codigo: codigo
-      },
-      "*"
-    );
-
-    estado.innerHTML =
-      "✅ Código enviado";
-
-    resultado.innerHTML =
-      codigo;
-
-    setTimeout(function() {
-
-      window.close();
-
-    }, 700);
-
-    return;
-  }
-
-  estado.innerHTML =
-    "Código detectado";
-
-  resultado.innerHTML =
-    codigo;
-}
-
-        try {
-
-          window.opener.postMessage(
-
-            {
-              tipo: "codigoBarras",
-              codigo: codigo
-            },
-
-            "https://script.google.com"
-
-          );
+      const parametros =
+        new URLSearchParams(
+          window.location.search
+        );
 
 
-          estado.innerHTML =
-            "✅ Código enviado";
+      const retorno =
+        parametros.get("retorno");
 
 
-          resultado.innerHTML =
-            codigo;
+      if (!retorno) {
 
+        estado.innerHTML =
+          "Código detectado:<br>" +
+          codigo;
 
-          // Cerrar esta pestaña
+        resultado.innerHTML =
+          codigo;
 
-          setTimeout(
-            function() {
-
-              window.close();
-
-            },
-            500
-          );
-
-
-          return;
-
-
-        } catch (error) {
-
-          console.error(
-            "Error enviando código:",
-            error
-          );
-
-        }
-
+        return;
       }
 
 
-      // Si no existe ventana principal
+      // Recuperar URL original
 
-      estado.innerHTML =
-        "Código detectado";
+      const url =
+        decodeURIComponent(
+          retorno
+        );
 
 
-      resultado.innerHTML =
-        codigo;
+      // Agregar barcode
+
+      const separador =
+        url.includes("?")
+          ? "&"
+          : "?";
+
+
+      const urlFinal =
+        url +
+        separador +
+        "barcode=" +
+        encodeURIComponent(
+          codigo
+        );
+
+
+      console.log(
+        "Regresando a Apps Script:",
+        urlFinal
+      );
+
+
+      // Regresar en la MISMA pestaña
+
+      window.location.href =
+        urlFinal;
 
     }
 
@@ -477,9 +400,22 @@
       detenerScanner();
 
 
-      if (window.opener) {
+      const parametros =
+        new URLSearchParams(
+          window.location.search
+        );
 
-        window.close();
+
+      const retorno =
+        parametros.get("retorno");
+
+
+      if (retorno) {
+
+        window.location.href =
+          decodeURIComponent(
+            retorno
+          );
 
       } else {
 
@@ -491,7 +427,7 @@
 
 
     // =====================================================
-    // LIMPIAR CÁMARA AL SALIR
+    // LIMPIAR CÁMARA
     // =====================================================
 
     window.addEventListener(
@@ -502,7 +438,6 @@
 
       }
     );
-
 
   </script>
 
