@@ -19,6 +19,7 @@
       width: 100%;
       height: 75vh;
       object-fit: cover;
+      background: #000;
     }
 
     #estado {
@@ -34,9 +35,21 @@
 
     button {
       padding: 15px 30px;
+      margin: 10px;
       font-size: 18px;
       border: none;
       border-radius: 8px;
+    }
+
+    #btnIniciar {
+      background: #00c853;
+      color: white;
+      font-weight: bold;
+    }
+
+    #btnCancelar {
+      background: white;
+      color: black;
     }
   </style>
 </head>
@@ -44,107 +57,144 @@
 <body>
 
   <div id="estado">
-    Iniciando lector...
+    Pulsa "Activar cámara"
   </div>
 
   <video id="video" autoplay muted playsinline></video>
 
   <div id="resultado"></div>
 
-  <button onclick="volver()">
+  <button id="btnIniciar" onclick="iniciar()">
+    📷 Activar cámara
+  </button>
+
+  <button id="btnCancelar" onclick="volver()">
     Cancelar
   </button>
 
-
-  <!-- LIBRERÍA LOCAL -->
   <script src="./zxing-browser.min.js"></script>
-
 
   <script>
 
-    const video = document.getElementById("video");
-    const estado = document.getElementById("estado");
-    const resultado = document.getElementById("resultado");
+    const video =
+      document.getElementById("video");
 
-    let lector;
-    let controles;
+    const estado =
+      document.getElementById("estado");
+
+    const resultado =
+      document.getElementById("resultado");
+
+    const btnIniciar =
+      document.getElementById("btnIniciar");
+
+    let lector = null;
+    let controles = null;
 
 
-    function iniciar() {
+    async function iniciar() {
 
-      console.log("ZXingBrowser:", window.ZXingBrowser);
-
-      if (!window.ZXingBrowser) {
+      btnIniciar.disabled = true;
 
       estado.innerHTML =
-        "❌ ZXingBrowser NO está cargado";
+        "Solicitando acceso a la cámara...";
 
-      return;
-      }
+      try {
 
+        // Primero solicitamos directamente
+        // permiso a la cámara.
 
-      estado.innerHTML =
-        "📷 Apunta al código de barras";
-
-
-      lector =
-        new ZXingBrowser.BrowserMultiFormatReader();
-
-
-      lector
-        .decodeFromConstraints(
-          {
+        const stream =
+          await navigator.mediaDevices.getUserMedia({
             video: {
               facingMode: {
                 ideal: "environment"
-              },
-              width: {
-                ideal: 1920
-              },
-              height: {
-                ideal: 1080
               }
             },
             audio: false
-          },
-          video,
-          function(resultadoCodigo, error) {
+          });
 
-            if (resultadoCodigo) {
+        // Mostramos la cámara.
 
-              const codigo =
-                resultadoCodigo.getText();
+        video.srcObject = stream;
 
-              console.log(
-                "Código:",
-                codigo
-              );
+        await video.play();
 
-              resultado.innerHTML =
-                "Código detectado:<br>" +
-                codigo;
 
-              detener();
+        // Verificar ZXing
 
-              enviarCodigo(codigo);
+        if (!window.ZXingBrowser) {
+
+          throw new Error(
+            "ZXingBrowser no está cargado."
+          );
+        }
+
+
+        estado.innerHTML =
+          "📷 Apunta al código de barras";
+
+
+        lector =
+          new ZXingBrowser.BrowserMultiFormatReader();
+
+
+        controles =
+          await lector.decodeFromConstraints(
+            {
+              video: {
+                facingMode: {
+                  ideal: "environment"
+                },
+                width: {
+                  ideal: 1920
+                },
+                height: {
+                  ideal: 1080
+                }
+              },
+              audio: false
+            },
+            video,
+            function(resultadoCodigo, error) {
+
+              if (resultadoCodigo) {
+
+                const codigo =
+                  resultadoCodigo.getText();
+
+                console.log(
+                  "Código detectado:",
+                  codigo
+                );
+
+                resultado.innerHTML =
+                  "Código detectado:<br>" +
+                  codigo;
+
+                detener();
+
+                setTimeout(function() {
+
+                  enviarCodigo(codigo);
+
+                }, 500);
+              }
+
             }
+          );
 
-          }
-        )
-        .then(function(c) {
+      } catch (error) {
 
-          controles = c;
+        console.error(error);
 
-        })
-        .catch(function(error) {
+        btnIniciar.disabled = false;
 
-          console.error(error);
+        estado.innerHTML =
+          "❌ Error al iniciar la cámara:<br><br>" +
+          error.message;
 
-          estado.innerHTML =
-            "❌ Error al iniciar cámara:<br>" +
-            error.message;
-
-        });
+      }
     }
 
 
@@ -153,11 +203,27 @@
       try {
 
         if (controles) {
-          controles.stop();
+
+          if (
+            typeof controles.stop ===
+            "function"
+          ) {
+            controles.stop();
+          }
+
+          controles = null;
         }
 
         if (lector) {
-          lector.reset();
+
+          if (
+            typeof lector.reset ===
+            "function"
+          ) {
+            lector.reset();
+          }
+
+          lector = null;
         }
 
         if (video.srcObject) {
@@ -165,13 +231,17 @@
           video.srcObject
             .getTracks()
             .forEach(function(track) {
+
               track.stop();
+
             });
+
+          video.srcObject = null;
         }
 
-      } catch (e) {
+      } catch (error) {
 
-        console.log(e);
+        console.log(error);
 
       }
     }
@@ -191,7 +261,8 @@
       if (!retorno) {
 
         estado.innerHTML =
-          "Código detectado: " + codigo;
+          "Código detectado: " +
+          codigo;
 
         return;
       }
@@ -199,7 +270,6 @@
 
       const url =
         decodeURIComponent(retorno);
-
 
       const separador =
         url.includes("?")
@@ -239,9 +309,6 @@
 
       }
     }
-
-
-    iniciar();
 
   </script>
 
