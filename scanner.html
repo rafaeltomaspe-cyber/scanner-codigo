@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Escanear código</title>
+
+  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #contenedor {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+    }
+
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    #superior {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 18px;
+      text-align: center;
+      background: linear-gradient(
+        rgba(0,0,0,0.75),
+        rgba(0,0,0,0)
+      );
+      z-index: 10;
+    }
+
+    #titulo {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #estado {
+      margin-top: 8px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    #marco {
+      position: absolute;
+      width: 82%;
+      max-width: 420px;
+      height: 180px;
+      border: 3px solid #00ff66;
+      border-radius: 14px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      box-shadow: 0 0 20px rgba(0,255,100,0.4);
+    }
+
+    #linea {
+      position: absolute;
+      left: 5%;
+      right: 5%;
+      top: 50%;
+      height: 2px;
+      background: #00ff66;
+      box-shadow: 0 0 8px #00ff66;
+      animation: mover 1.5s infinite;
+    }
+
+    @keyframes mover {
+      0% {
+        top: 15%;
+      }
+
+      50% {
+        top: 85%;
+      }
+
+      100% {
+        top: 15%;
+      }
+    }
+
+    #inferior {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 25px;
+      background: linear-gradient(
+        rgba(0,0,0,0),
+        rgba(0,0,0,0.85)
+      );
+      text-align: center;
+      z-index: 10;
+    }
+
+    button {
+      width: 100%;
+      max-width: 350px;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      background: white;
+      color: black;
+    }
+
+    #resultado {
+      display: none;
+      margin-bottom: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.75);
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #error {
+      display: none;
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 20px;
+      background: rgba(180,0,0,0.9);
+      border-radius: 12px;
+      text-align: center;
+      z-index: 20;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="contenedor">
+
+  <video id="video" autoplay muted playsinline></video>
+
+  <div id="superior">
+    <div id="titulo">Escanear código de barras</div>
+    <div id="estado">Apunta la cámara al código</div>
+  </div>
+
+  <div id="marco">
+    <div id="linea"></div>
+  </div>
+
+  <div id="inferior">
+
+    <div id="resultado"></div>
+
+    <button onclick="cerrarScanner()">
+      Cancelar
+    </button>
+
+  </div>
+
+  <div id="error"></div>
+
+</div>
+
+<script>
+
+  const video = document.getElementById("video");
+  const estado = document.getElementById("estado");
+  const resultado = document.getElementById("resultado");
+  const errorBox = document.getElementById("error");
+
+  let lector = null;
+  let procesando = false;
+
+  function obtenerParametros() {
+
+    const params = new URLSearchParams(window.location.search);
+
+    return {
+      retorno: params.get("retorno") || "",
+      tipo: params.get("tipo") || "EAN"
+    };
+
+  }
+
+  const parametros = obtenerParametros();
+
+  async function iniciarScanner() {
+
+    try {
+
+      estado.textContent = "Activando cámara...";
+
+      lector = new ZXingBrowser.BrowserMultiFormatReader();
+
+      const dispositivos =
+        await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+
+      if (!dispositivos || dispositivos.length === 0) {
+        throw new Error("No se encontró ninguna cámara.");
+      }
+
+      let dispositivo = dispositivos.find(d =>
+        /back|rear|environment|trasera|posterior/i.test(d.label)
+      );
+
+      if (!dispositivo) {
+        dispositivo = dispositivos[dispositivos.length - 1];
+      }
+
+      estado.textContent = "Buscando código...";
+
+      await lector.decodeFromVideoDevice(
+        dispositivo.deviceId,
+        video,
+        (resultadoLectura, error) => {
+
+          if (procesando) return;
+
+          if (resultadoLectura) {
+
+            const codigo =
+              resultadoLectura.getText().trim();
+
+            if (!codigo) return;
+
+            procesando = true;
+
+            codigoDetectado(codigo);
+          }
+
+        }
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      mostrarError(
+        "No se pudo acceder a la cámara.<br><br>" +
+        "Verifica que el navegador tenga permiso para utilizarla."
+      );
+
+    }
+
+  }
+
+  function codigoDetectado(codigo) {
+
+    estado.textContent = "Código encontrado";
+
+    resultado.style.display = "block";
+    resultado.textContent = codigo;
+
+    if (navigator.vibrate) {
+      navigator.vibrate(150);
+    }
+
+    setTimeout(() => {
+
+      regresarAplicacion(codigo);
+
+    }, 500);
+
+  }
+
+  function regresarAplicacion(codigo) {
+
+    if (!parametros.retorno) {
+
+      alert(
+        "Código detectado: " + codigo
+      );
+
+      procesando = false;
+
+      return;
+    }
+
+    const separador =
+      parametros.retorno.includes("?")
+        ? "&"
+        : "?";
+
+    const url =
+      parametros.retorno +
+      separador +
+      "barcode=" +
+      encodeURIComponent(codigo);
+
+    detenerScanner();
+
+    window.location.href = url;
+
+  }
+
+  function detenerScanner() {
+
+    try {
+
+      if (lector) {
+        lector.reset();
+      }
+
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (video.srcObject) {
+
+      video.srcObject
+        .getTracks()
+        .forEach(track => track.stop());
+
+    }
+
+  }
+
+  function cerrarScanner() {
+
+    detenerScanner();
+
+    if (parametros.retorno) {
+
+      const separador =
+        parametros.retorno.includes("?")
+          ? "&"
+          : "?";
+
+      window.location.href =
+        parametros.retorno +
+        separador +
+        "cancelado=1";
+
+    } else {
+
+      window.history.back();
+
+    }
+
+  }
+
+  function mostrarError(mensaje) {
+
+    errorBox.innerHTML = mensaje;
+    errorBox.style.display = "block";
+
+    estado.textContent = "Error de cámara";
+
+  }
+
+  window.addEventListener(
+    "beforeunload",
+    detenerScanner
+  );
+
+  iniciarScanner();
+
+</script>
+
+</body>
+</html>
