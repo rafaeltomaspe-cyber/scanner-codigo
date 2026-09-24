@@ -1,359 +1,937 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <title>Escanear código</title>
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <title>Escanear código de barras</title>
 
   <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
       background: #000;
-      color: white;
-      font-family: Arial, sans-serif;
       overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
     }
 
     #contenedor {
       position: fixed;
       inset: 0;
-      display: flex;
-      flex-direction: column;
       background: #000;
     }
 
     #video {
+      position: absolute;
+      inset: 0;
+
       width: 100%;
       height: 100%;
+
       object-fit: cover;
+
       background: #000;
     }
 
     #superior {
       position: absolute;
+
       top: 0;
       left: 0;
       right: 0;
-      padding: 18px;
+
+      padding: 20px;
+
       text-align: center;
-      background: linear-gradient(
-        rgba(0,0,0,0.75),
-        rgba(0,0,0,0)
-      );
+
+      background:
+        linear-gradient(
+          rgba(0,0,0,.85),
+          rgba(0,0,0,0)
+        );
+
       z-index: 10;
     }
 
     #titulo {
-      font-size: 20px;
+      font-size: 21px;
       font-weight: bold;
     }
 
     #estado {
       margin-top: 8px;
       font-size: 14px;
-      opacity: 0.9;
+      opacity: .9;
     }
 
     #marco {
       position: absolute;
-      width: 82%;
-      max-width: 420px;
+
+      width: 85%;
+      max-width: 450px;
+
       height: 180px;
-      border: 3px solid #00ff66;
-      border-radius: 14px;
+
       left: 50%;
       top: 50%;
+
       transform: translate(-50%, -50%);
+
+      border: 3px solid #00ff66;
+
+      border-radius: 14px;
+
       z-index: 5;
-      box-shadow: 0 0 20px rgba(0,255,100,0.4);
+
+      box-shadow:
+        0 0 20px rgba(0,255,100,.4);
     }
 
     #linea {
       position: absolute;
+
       left: 5%;
       right: 5%;
-      top: 50%;
+
+      top: 10%;
+
       height: 2px;
+
       background: #00ff66;
-      box-shadow: 0 0 8px #00ff66;
-      animation: mover 1.5s infinite;
+
+      box-shadow:
+        0 0 8px #00ff66;
+
+      animation:
+        mover 1.5s infinite;
     }
 
     @keyframes mover {
+
       0% {
-        top: 15%;
+        top: 10%;
       }
 
       50% {
-        top: 85%;
+        top: 90%;
       }
 
       100% {
-        top: 15%;
+        top: 10%;
       }
+
     }
 
     #inferior {
       position: absolute;
+
       bottom: 0;
+
       left: 0;
       right: 0;
+
       padding: 25px;
-      background: linear-gradient(
-        rgba(0,0,0,0),
-        rgba(0,0,0,0.85)
-      );
+
       text-align: center;
+
+      background:
+        linear-gradient(
+          rgba(0,0,0,0),
+          rgba(0,0,0,.9)
+        );
+
       z-index: 10;
     }
 
-    button {
-      width: 100%;
-      max-width: 350px;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      font-size: 17px;
+    #resultado {
+
+      display: none;
+
+      margin-bottom: 15px;
+
+      padding: 12px;
+
+      border-radius: 8px;
+
+      background: rgba(0,0,0,.75);
+
+      font-size: 21px;
+
       font-weight: bold;
-      cursor: pointer;
-      background: white;
-      color: black;
+
     }
 
-    #resultado {
-      display: none;
-      margin-bottom: 15px;
-      padding: 12px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.75);
-      font-size: 20px;
+    button {
+
+      width: 100%;
+
+      max-width: 350px;
+
+      padding: 15px;
+
+      border: none;
+
+      border-radius: 10px;
+
+      font-size: 17px;
+
       font-weight: bold;
+
+      background: white;
+
+      color: black;
+
+      cursor: pointer;
+
     }
 
     #error {
+
       display: none;
+
       position: absolute;
+
       left: 20px;
       right: 20px;
+
       top: 50%;
+
       transform: translateY(-50%);
+
       padding: 20px;
-      background: rgba(180,0,0,0.9);
+
+      background: rgba(150,0,0,.95);
+
       border-radius: 12px;
+
       text-align: center;
-      z-index: 20;
+
+      z-index: 30;
+
+      line-height: 1.5;
+
     }
+
+    #botonPermiso {
+
+      display: none;
+
+      margin-top: 15px;
+
+    }
+
   </style>
+
 </head>
+
 
 <body>
 
 <div id="contenedor">
 
-  <video id="video" autoplay muted playsinline></video>
+  <video
+    id="video"
+    autoplay
+    muted
+    playsinline
+  ></video>
+
 
   <div id="superior">
-    <div id="titulo">Escanear código de barras</div>
-    <div id="estado">Apunta la cámara al código</div>
+
+    <div id="titulo">
+      Escanear código de barras
+    </div>
+
+    <div id="estado">
+      Activando cámara...
+    </div>
+
   </div>
 
+
   <div id="marco">
+
     <div id="linea"></div>
+
   </div>
+
 
   <div id="inferior">
 
     <div id="resultado"></div>
 
-    <button onclick="cerrarScanner()">
+    <button
+      id="botonCancelar"
+      onclick="cerrarScanner()"
+    >
       Cancelar
     </button>
 
   </div>
 
-  <div id="error"></div>
+
+  <div id="error">
+
+    <div id="mensajeError"></div>
+
+    <button
+      id="botonPermiso"
+      onclick="iniciarScanner()"
+    >
+      Permitir / Reintentar cámara
+    </button>
+
+  </div>
 
 </div>
 
+
 <script>
 
-  const video = document.getElementById("video");
-  const estado = document.getElementById("estado");
-  const resultado = document.getElementById("resultado");
-  const errorBox = document.getElementById("error");
+  var video =
+    document.getElementById('video');
 
-  let lector = null;
-  let procesando = false;
+  var estado =
+    document.getElementById('estado');
+
+  var resultado =
+    document.getElementById('resultado');
+
+  var errorBox =
+    document.getElementById('error');
+
+  var mensajeError =
+    document.getElementById('mensajeError');
+
+  var botonPermiso =
+    document.getElementById('botonPermiso');
+
+  var lector = null;
+
+  var procesando = false;
+
+  var streamActual = null;
+
+
+  /* =========================
+     PARÁMETROS
+  ========================= */
 
   function obtenerParametros() {
 
-    const params = new URLSearchParams(window.location.search);
+    var params =
+      new URLSearchParams(
+        window.location.search
+      );
 
     return {
-      retorno: params.get("retorno") || "",
-      tipo: params.get("tipo") || "EAN"
+
+      retorno:
+        params.get('retorno') || '',
+
+      tipo:
+        params.get('tipo') || 'EAN'
+
     };
 
   }
 
-  const parametros = obtenerParametros();
+
+  var parametros =
+    obtenerParametros();
+
+
+  /* =========================
+     INICIAR
+  ========================= */
 
   async function iniciarScanner() {
 
+    errorBox.style.display = 'none';
+
+    botonPermiso.style.display = 'none';
+
+    procesando = false;
+
+    estado.textContent =
+      'Solicitando acceso a la cámara...';
+
+
     try {
 
-      estado.textContent = "Activando cámara...";
+      detenerCamara();
 
-      lector = new ZXingBrowser.BrowserMultiFormatReader();
 
-      const dispositivos =
-        await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+      /*
+        PRIMER INTENTO:
 
-      if (!dispositivos || dispositivos.length === 0) {
-        throw new Error("No se encontró ninguna cámara.");
-      }
+        Cámara trasera.
+      */
 
-      let dispositivo = dispositivos.find(d =>
-        /back|rear|environment|trasera|posterior/i.test(d.label)
-      );
+      var restricciones = {
 
-      if (!dispositivo) {
-        dispositivo = dispositivos[dispositivos.length - 1];
-      }
+        audio: false,
 
-      estado.textContent = "Buscando código...";
+        video: {
 
-      await lector.decodeFromVideoDevice(
-        dispositivo.deviceId,
-        video,
-        (resultadoLectura, error) => {
+          facingMode: {
+            ideal: 'environment'
+          },
 
-          if (procesando) return;
+          width: {
+            ideal: 1280
+          },
 
-          if (resultadoLectura) {
+          height: {
+            ideal: 720
+          },
 
-            const codigo =
-              resultadoLectura.getText().trim();
-
-            if (!codigo) return;
-
-            procesando = true;
-
-            codigoDetectado(codigo);
-          }
+          focusMode: 'continuous'
 
         }
-      );
+
+      };
+
+
+      streamActual =
+        await navigator.mediaDevices
+          .getUserMedia(restricciones);
+
+
+      video.srcObject =
+        streamActual;
+
+
+      await video.play();
+
+
+      estado.textContent =
+        'Buscando código...';
+
+
+      iniciarZXing();
+
 
     } catch (error) {
 
-      console.error(error);
-
-      mostrarError(
-        "No se pudo acceder a la cámara.<br><br>" +
-        "Verifica que el navegador tenga permiso para utilizarla."
+      console.error(
+        'Error cámara:',
+        error
       );
+
+
+      /*
+        SEGUNDO INTENTO:
+
+        Buscar dispositivos de cámara.
+      */
+
+      try {
+
+        await iniciarPorDispositivo();
+
+      } catch (error2) {
+
+        console.error(
+          'Error segundo intento:',
+          error2
+        );
+
+        mostrarError(error2);
+
+      }
 
     }
 
   }
 
-  function codigoDetectado(codigo) {
 
-    estado.textContent = "Código encontrado";
+  /* =========================
+     SEGUNDO MÉTODO
+  ========================= */
 
-    resultado.style.display = "block";
-    resultado.textContent = codigo;
+  async function iniciarPorDispositivo() {
 
-    if (navigator.vibrate) {
-      navigator.vibrate(150);
+    estado.textContent =
+      'Buscando cámaras disponibles...';
+
+
+    var dispositivos =
+      await navigator.mediaDevices
+        .enumerateDevices();
+
+
+    var camaras =
+      dispositivos.filter(function(d) {
+
+        return d.kind ===
+          'videoinput';
+
+      });
+
+
+    if(
+      !camaras ||
+      camaras.length === 0
+    ) {
+
+      throw new Error(
+        'No se encontró ninguna cámara en este dispositivo.'
+      );
+
     }
 
-    setTimeout(() => {
 
-      regresarAplicacion(codigo);
+    /*
+      Buscar cámara trasera
+      por nombre.
+    */
 
-    }, 500);
+    var camaraTrasera =
+      camaras.find(function(camara) {
+
+        return /back|rear|environment|trasera|posterior/i
+          .test(camara.label);
+
+      });
+
+
+    var camara =
+      camaraTrasera ||
+      camaras[camaras.length - 1];
+
+
+    estado.textContent =
+      'Activando cámara...';
+
+
+    streamActual =
+      await navigator.mediaDevices
+        .getUserMedia({
+
+          audio: false,
+
+          video: {
+
+            deviceId: {
+              exact: camara.deviceId
+            },
+
+            width: {
+              ideal: 1280
+            },
+
+            height: {
+              ideal: 720
+            }
+
+          }
+
+        });
+
+
+    video.srcObject =
+      streamActual;
+
+
+    await video.play();
+
+
+    estado.textContent =
+      'Buscando código...';
+
+
+    iniciarZXing();
 
   }
 
-  function regresarAplicacion(codigo) {
 
-    if (!parametros.retorno) {
+  /* =========================
+     ZXING
+  ========================= */
 
-      alert(
-        "Código detectado: " + codigo
-      );
+  function iniciarZXing() {
 
-      procesando = false;
+    if(
+      typeof ZXingBrowser ===
+      'undefined'
+    ) {
+
+      mostrarError({
+
+        message:
+          'No se pudo cargar el lector de códigos. Verifica la conexión a Internet.'
+
+      });
 
       return;
+
     }
 
-    const separador =
-      parametros.retorno.includes("?")
-        ? "&"
-        : "?";
-
-    const url =
-      parametros.retorno +
-      separador +
-      "barcode=" +
-      encodeURIComponent(codigo);
-
-    detenerScanner();
-
-    window.location.href = url;
-
-  }
-
-  function detenerScanner() {
 
     try {
 
-      if (lector) {
-        lector.reset();
-      }
+      lector =
+        new ZXingBrowser
+          .BrowserMultiFormatReader();
 
-    } catch (e) {
-      console.log(e);
-    }
 
-    if (video.srcObject) {
+      lector.decodeFromVideoElement(
+        video,
+        function(
+          resultadoLectura,
+          error
+        ) {
 
-      video.srcObject
-        .getTracks()
-        .forEach(track => track.stop());
+          if(procesando) {
+
+            return;
+
+          }
+
+
+          if(resultadoLectura) {
+
+            var codigo =
+              resultadoLectura
+                .getText()
+                .trim();
+
+
+            if(!codigo) {
+
+              return;
+
+            }
+
+
+            procesando = true;
+
+
+            codigoDetectado(
+              codigo
+            );
+
+          }
+
+        }
+
+      );
+
+    } catch(error) {
+
+      console.error(error);
+
+      mostrarError(error);
 
     }
 
   }
 
+
+  /* =========================
+     CÓDIGO DETECTADO
+  ========================= */
+
+  function codigoDetectado(
+    codigo
+  ) {
+
+    estado.textContent =
+      'Código encontrado';
+
+
+    resultado.style.display =
+      'block';
+
+
+    resultado.textContent =
+      codigo;
+
+
+    if(
+      navigator.vibrate
+    ) {
+
+      navigator.vibrate(
+        [100,50,100]
+      );
+
+    }
+
+
+    setTimeout(
+      function() {
+
+        regresarAplicacion(
+          codigo
+        );
+
+      },
+      500
+    );
+
+  }
+
+
+  /* =========================
+     REGRESAR
+  ========================= */
+
+  function regresarAplicacion(
+    codigo
+  ) {
+
+    detenerCamara();
+
+
+    if(!parametros.retorno) {
+
+      alert(
+        'Código detectado: ' +
+        codigo
+      );
+
+      return;
+
+    }
+
+
+    var separador =
+      parametros.retorno
+        .includes('?')
+        ? '&'
+        : '?';
+
+
+    var url =
+
+      parametros.retorno +
+
+      separador +
+
+      'barcode=' +
+
+      encodeURIComponent(
+        codigo
+      );
+
+
+    window.location.href =
+      url;
+
+  }
+
+
+  /* =========================
+     DETENER CÁMARA
+  ========================= */
+
+  function detenerCamara() {
+
+    try {
+
+      if(lector) {
+
+        lector.reset();
+
+        lector = null;
+
+      }
+
+    } catch(e) {
+
+      console.log(e);
+
+    }
+
+
+    if(streamActual) {
+
+      streamActual
+        .getTracks()
+        .forEach(
+          function(track) {
+
+            track.stop();
+
+          }
+        );
+
+      streamActual = null;
+
+    }
+
+
+    if(video.srcObject) {
+
+      video.srcObject = null;
+
+    }
+
+  }
+
+
+  /* =========================
+     ERROR
+  ========================= */
+
+  function mostrarError(
+    error
+  ) {
+
+    var nombre =
+      error &&
+      error.name
+        ? error.name
+        : 'Error';
+
+
+    var mensaje =
+      error &&
+      error.message
+        ? error.message
+        : 'No se pudo acceder a la cámara.';
+
+
+    console.error(
+      nombre,
+      mensaje
+    );
+
+
+    var texto = '';
+
+
+    if(
+      nombre ===
+      'NotAllowedError'
+    ) {
+
+      texto =
+        'El navegador bloqueó el acceso a la cámara.<br><br>' +
+
+        'Pulsa el botón para permitir el acceso y vuelve a intentar.';
+
+    }
+
+    else if(
+      nombre ===
+      'NotFoundError'
+    ) {
+
+      texto =
+        'No se encontró ninguna cámara disponible en este dispositivo.';
+
+    }
+
+    else if(
+      nombre ===
+      'NotReadableError'
+    ) {
+
+      texto =
+        'La cámara está siendo utilizada por otra aplicación.<br><br>' +
+
+        'Cierra otras aplicaciones que estén usando la cámara y vuelve a intentar.';
+
+    }
+
+    else if(
+      nombre ===
+      'OverconstrainedError'
+    ) {
+
+      texto =
+        'La configuración solicitada para la cámara no está disponible.<br><br>' +
+
+        'Intentaremos nuevamente con otra cámara.';
+
+    }
+
+    else {
+
+      texto =
+        'No se pudo acceder a la cámara.<br><br>' +
+
+        '<small>' +
+
+        nombre +
+
+        ': ' +
+
+        mensaje +
+
+        '</small>';
+
+    }
+
+
+    mensajeError.innerHTML =
+      texto;
+
+
+    errorBox.style.display =
+      'block';
+
+
+    botonPermiso.style.display =
+      'block';
+
+
+    estado.textContent =
+      'No se pudo iniciar la cámara.';
+
+  }
+
+
+  /* =========================
+     CANCELAR
+  ========================= */
+
   function cerrarScanner() {
 
-    detenerScanner();
+    detenerCamara();
 
-    if (parametros.retorno) {
 
-      const separador =
-        parametros.retorno.includes("?")
-          ? "&"
-          : "?";
+    if(parametros.retorno) {
+
+      var separador =
+        parametros.retorno
+          .includes('?')
+          ? '&'
+          : '?';
+
 
       window.location.href =
-        parametros.retorno +
-        separador +
-        "cancelado=1";
 
-    } else {
+        parametros.retorno +
+
+        separador +
+
+        'cancelado=1';
+
+    }
+
+    else {
 
       window.history.back();
 
@@ -361,23 +939,50 @@
 
   }
 
-  function mostrarError(mensaje) {
 
-    errorBox.innerHTML = mensaje;
-    errorBox.style.display = "block";
+  /* =========================
+     LIMPIEZA
+  ========================= */
 
-    estado.textContent = "Error de cámara";
+  window.addEventListener(
+    'beforeunload',
+    function() {
+
+      detenerCamara();
+
+    }
+  );
+
+
+  /* =========================
+     COMPROBAR SOPORTE
+  ========================= */
+
+  if(
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    mostrarError({
+
+      name:
+        'Navegador no compatible',
+
+      message:
+        'Este navegador no permite utilizar la cámara desde esta página.'
+
+    });
 
   }
 
-  window.addEventListener(
-    "beforeunload",
-    detenerScanner
-  );
+  else {
 
-  iniciarScanner();
+    iniciarScanner();
+
+  }
 
 </script>
 
 </body>
+
 </html>
