@@ -3,241 +3,269 @@
 
 <head>
 
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+>
 
-  <title>Escanear código de barras</title>
+<title>Escanear código de barras</title>
 
-  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
+<!-- ZXING -->
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
 
-  <style>
+<style>
 
-    * {
-      box-sizing: border-box;
-    }
+*{
+  box-sizing:border-box;
+}
 
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      color: white;
-    }
+html,
+body{
 
-    #contenedor {
-      position: fixed;
-      inset: 0;
-      background: #000;
-    }
+  margin:0;
+  padding:0;
 
-    #video {
-      position: absolute;
-      inset: 0;
+  width:100%;
+  height:100%;
 
-      width: 100%;
-      height: 100%;
+  background:#000;
 
-      object-fit: cover;
+  overflow:hidden;
 
-      background: #000;
-    }
+  font-family:Arial,sans-serif;
 
-    #superior {
-      position: absolute;
+  color:#fff;
 
-      top: 0;
-      left: 0;
-      right: 0;
+}
 
-      padding: 20px;
+#contenedor{
 
-      text-align: center;
+  position:fixed;
 
-      background:
-        linear-gradient(
-          rgba(0,0,0,.85),
-          rgba(0,0,0,0)
-        );
+  inset:0;
 
-      z-index: 10;
-    }
+  background:#000;
 
-    #titulo {
-      font-size: 21px;
-      font-weight: bold;
-    }
+}
 
-    #estado {
-      margin-top: 8px;
-      font-size: 14px;
-      opacity: .9;
-    }
+#video{
 
-    #marco {
-      position: absolute;
+  position:absolute;
 
-      width: 85%;
-      max-width: 450px;
+  inset:0;
 
-      height: 180px;
+  width:100%;
+  height:100%;
 
-      left: 50%;
-      top: 50%;
+  object-fit:cover;
 
-      transform: translate(-50%, -50%);
+  background:#000;
 
-      border: 3px solid #00ff66;
+}
 
-      border-radius: 14px;
+#superior{
 
-      z-index: 5;
+  position:absolute;
 
-      box-shadow:
-        0 0 20px rgba(0,255,100,.4);
-    }
+  top:0;
+  left:0;
+  right:0;
 
-    #linea {
-      position: absolute;
+  padding:20px;
 
-      left: 5%;
-      right: 5%;
+  text-align:center;
 
-      top: 10%;
+  background:
+    linear-gradient(
+      rgba(0,0,0,.85),
+      rgba(0,0,0,0)
+    );
 
-      height: 2px;
+  z-index:10;
 
-      background: #00ff66;
+}
 
-      box-shadow:
-        0 0 8px #00ff66;
+#titulo{
 
-      animation:
-        mover 1.5s infinite;
-    }
+  font-size:21px;
 
-    @keyframes mover {
+  font-weight:bold;
 
-      0% {
-        top: 10%;
-      }
+}
 
-      50% {
-        top: 90%;
-      }
+#estado{
 
-      100% {
-        top: 10%;
-      }
+  margin-top:8px;
 
-    }
+  font-size:14px;
 
-    #inferior {
-      position: absolute;
+  opacity:.9;
 
-      bottom: 0;
+}
 
-      left: 0;
-      right: 0;
+#marco{
 
-      padding: 25px;
+  position:absolute;
 
-      text-align: center;
+  width:85%;
 
-      background:
-        linear-gradient(
-          rgba(0,0,0,0),
-          rgba(0,0,0,.9)
-        );
+  max-width:450px;
 
-      z-index: 10;
-    }
+  height:180px;
 
-    #resultado {
+  left:50%;
+  top:50%;
 
-      display: none;
+  transform:
+    translate(-50%,-50%);
 
-      margin-bottom: 15px;
+  border:
+    3px solid #00ff66;
 
-      padding: 12px;
+  border-radius:14px;
 
-      border-radius: 8px;
+  z-index:5;
 
-      background: rgba(0,0,0,.75);
+  box-shadow:
+    0 0 20px
+    rgba(0,255,100,.4);
 
-      font-size: 21px;
+}
 
-      font-weight: bold;
+#linea{
 
-    }
+  position:absolute;
 
-    button {
+  left:5%;
+  right:5%;
 
-      width: 100%;
+  top:10%;
 
-      max-width: 350px;
+  height:2px;
 
-      padding: 15px;
+  background:#00ff66;
 
-      border: none;
+  box-shadow:
+    0 0 8px #00ff66;
 
-      border-radius: 10px;
+  animation:mover 1.5s infinite;
 
-      font-size: 17px;
+}
 
-      font-weight: bold;
+@keyframes mover{
 
-      background: white;
+  0%{
+    top:10%;
+  }
 
-      color: black;
+  50%{
+    top:90%;
+  }
 
-      cursor: pointer;
+  100%{
+    top:10%;
+  }
 
-    }
+}
 
-    #error {
+#inferior{
 
-      display: none;
+  position:absolute;
 
-      position: absolute;
+  bottom:0;
 
-      left: 20px;
-      right: 20px;
+  left:0;
+  right:0;
 
-      top: 50%;
+  padding:25px;
 
-      transform: translateY(-50%);
+  text-align:center;
 
-      padding: 20px;
+  background:
+    linear-gradient(
+      rgba(0,0,0,0),
+      rgba(0,0,0,.9)
+    );
 
-      background: rgba(150,0,0,.95);
+  z-index:10;
 
-      border-radius: 12px;
+}
 
-      text-align: center;
+#resultado{
 
-      z-index: 30;
+  display:none;
 
-      line-height: 1.5;
+  margin-bottom:15px;
 
-    }
+  padding:12px;
 
-    #botonPermiso {
+  border-radius:8px;
 
-      display: none;
+  background:
+    rgba(0,0,0,.75);
 
-      margin-top: 15px;
+  font-size:21px;
 
-    }
+  font-weight:bold;
 
-  </style>
+}
+
+button{
+
+  width:100%;
+
+  max-width:350px;
+
+  padding:15px;
+
+  border:none;
+
+  border-radius:10px;
+
+  font-size:17px;
+
+  font-weight:bold;
+
+  background:#fff;
+
+  color:#000;
+
+  cursor:pointer;
+
+}
+
+#error{
+
+  display:none;
+
+  position:absolute;
+
+  left:20px;
+  right:20px;
+
+  top:50%;
+
+  transform:
+    translateY(-50%);
+
+  padding:20px;
+
+  background:
+    rgba(150,0,0,.95);
+
+  border-radius:12px;
+
+  text-align:center;
+
+  z-index:30;
+
+  line-height:1.5;
+
+}
+
+</style>
 
 </head>
 
@@ -261,7 +289,7 @@
     </div>
 
     <div id="estado">
-      Activando cámara...
+      Iniciando lector...
     </div>
 
   </div>
@@ -279,7 +307,6 @@
     <div id="resultado"></div>
 
     <button
-      id="botonCancelar"
       onclick="cerrarScanner()"
     >
       Cancelar
@@ -292,13 +319,6 @@
 
     <div id="mensajeError"></div>
 
-    <button
-      id="botonPermiso"
-      onclick="iniciarScanner()"
-    >
-      Permitir / Reintentar cámara
-    </button>
-
   </div>
 
 </div>
@@ -306,317 +326,145 @@
 
 <script>
 
-  var video =
-    document.getElementById('video');
+var video =
+  document.getElementById('video');
 
-  var estado =
-    document.getElementById('estado');
+var estado =
+  document.getElementById('estado');
 
-  var resultado =
-    document.getElementById('resultado');
+var resultado =
+  document.getElementById('resultado');
 
-  var errorBox =
-    document.getElementById('error');
+var errorBox =
+  document.getElementById('error');
 
-  var mensajeError =
-    document.getElementById('mensajeError');
+var mensajeError =
+  document.getElementById('mensajeError');
 
-  var botonPermiso =
-    document.getElementById('botonPermiso');
+var lector = null;
 
-  var lector = null;
+var controles = null;
 
-  var procesando = false;
-
-  var streamActual = null;
+var procesando = false;
 
 
-  /* =========================
-     PARÁMETROS
-  ========================= */
+/* =========================
+   PARÁMETROS
+========================= */
 
-  function obtenerParametros() {
+var parametros =
+  new URLSearchParams(
+    window.location.search
+  );
 
-    var params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    return {
-
-      retorno:
-        params.get('retorno') || '',
-
-      tipo:
-        params.get('tipo') || 'EAN'
-
-    };
-
-  }
+var retorno =
+  parametros.get('retorno') || '';
 
 
-  var parametros =
-    obtenerParametros();
+/* =========================
+   INICIAR
+========================= */
 
+async function iniciarScanner(){
 
-  /* =========================
-     INICIAR
-  ========================= */
-
-  async function iniciarScanner() {
-
-    errorBox.style.display = 'none';
-
-    botonPermiso.style.display = 'none';
-
-    procesando = false;
+  try{
 
     estado.textContent =
-      'Solicitando acceso a la cámara...';
-
-
-    try {
-
-      detenerCamara();
-
-
-      /*
-        PRIMER INTENTO:
-
-        Cámara trasera.
-      */
-
-      var restricciones = {
-
-        audio: false,
-
-        video: {
-
-          facingMode: {
-            ideal: 'environment'
-          },
-
-          width: {
-            ideal: 1280
-          },
-
-          height: {
-            ideal: 720
-          },
-
-          focusMode: 'continuous'
-
-        }
-
-      };
-
-
-      streamActual =
-        await navigator.mediaDevices
-          .getUserMedia(restricciones);
-
-
-      video.srcObject =
-        streamActual;
-
-
-      await video.play();
-
-
-      estado.textContent =
-        'Buscando código...';
-
-
-      iniciarZXing();
-
-
-    } catch (error) {
-
-      console.error(
-        'Error cámara:',
-        error
-      );
-
-
-      /*
-        SEGUNDO INTENTO:
-
-        Buscar dispositivos de cámara.
-      */
-
-      try {
-
-        await iniciarPorDispositivo();
-
-      } catch (error2) {
-
-        console.error(
-          'Error segundo intento:',
-          error2
-        );
-
-        mostrarError(error2);
-
-      }
-
-    }
-
-  }
-
-
-  /* =========================
-     SEGUNDO MÉTODO
-  ========================= */
-
-  async function iniciarPorDispositivo() {
-
-    estado.textContent =
-      'Buscando cámaras disponibles...';
-
-
-    var dispositivos =
-      await navigator.mediaDevices
-        .enumerateDevices();
-
-
-    var camaras =
-      dispositivos.filter(function(d) {
-
-        return d.kind ===
-          'videoinput';
-
-      });
-
-
-    if(
-      !camaras ||
-      camaras.length === 0
-    ) {
-
-      throw new Error(
-        'No se encontró ninguna cámara en este dispositivo.'
-      );
-
-    }
+      'Comprobando lector...';
 
 
     /*
-      Buscar cámara trasera
-      por nombre.
+      Comprobar que ZXing
+      realmente cargó.
     */
 
-    var camaraTrasera =
-      camaras.find(function(camara) {
+    if(
+      typeof ZXing === 'undefined'
+    ){
 
-        return /back|rear|environment|trasera|posterior/i
-          .test(camara.label);
+      throw new Error(
+        'ZXing no se cargó desde el servidor.'
+      );
 
-      });
+    }
 
 
-    var camara =
-      camaraTrasera ||
-      camaras[camaras.length - 1];
+    if(
+      !ZXing.BrowserMultiFormatReader
+    ){
+
+      throw new Error(
+        'BrowserMultiFormatReader no está disponible.'
+      );
+
+    }
 
 
     estado.textContent =
       'Activando cámara...';
 
 
-    streamActual =
-      await navigator.mediaDevices
-        .getUserMedia({
+    lector =
+      new ZXing.BrowserMultiFormatReader();
 
-          audio: false,
 
-          video: {
+    /*
+      No necesitamos manejar
+      manualmente getUserMedia.
 
-            deviceId: {
-              exact: camara.deviceId
+      ZXing se encarga de seleccionar
+      la cámara y realizar la lectura.
+    */
+
+    controles =
+      await lector.decodeFromConstraints(
+
+        {
+
+          video:{
+
+            facingMode:{
+              ideal:'environment'
             },
 
-            width: {
-              ideal: 1280
+            width:{
+              ideal:1280
             },
 
-            height: {
-              ideal: 720
+            height:{
+              ideal:720
             }
 
-          }
+          },
 
-        });
+          audio:false
 
+        },
 
-    video.srcObject =
-      streamActual;
-
-
-    await video.play();
-
-
-    estado.textContent =
-      'Buscando código...';
-
-
-    iniciarZXing();
-
-  }
-
-
-  /* =========================
-     ZXING
-  ========================= */
-
-  function iniciarZXing() {
-
-    if(
-      typeof ZXingBrowser ===
-      'undefined'
-    ) {
-
-      mostrarError({
-
-        message:
-          'No se pudo cargar el lector de códigos. Verifica la conexión a Internet.'
-
-      });
-
-      return;
-
-    }
-
-
-    try {
-
-      lector =
-        new ZXingBrowser
-          .BrowserMultiFormatReader();
-
-
-      lector.decodeFromVideoElement(
         video,
-        function(
-          resultadoLectura,
-          error
-        ) {
 
-          if(procesando) {
+        function(
+          lectura,
+          error,
+          controlesScanner
+        ){
+
+          if(procesando){
 
             return;
 
           }
 
 
-          if(resultadoLectura) {
+          if(lectura){
 
             var codigo =
-              resultadoLectura
+              lectura
                 .getText()
                 .trim();
 
 
-            if(!codigo) {
+            if(!codigo){
 
               return;
 
@@ -636,350 +484,282 @@
 
       );
 
-    } catch(error) {
 
-      console.error(error);
-
-      mostrarError(error);
-
-    }
+    estado.textContent =
+      'Buscando código...';
 
   }
 
+  catch(error){
 
-  /* =========================
-     CÓDIGO DETECTADO
-  ========================= */
-
-  function codigoDetectado(
-    codigo
-  ) {
-
-    estado.textContent =
-      'Código encontrado';
+    console.error(
+      'ERROR SCANNER:',
+      error
+    );
 
 
-    resultado.style.display =
-      'block';
+    mostrarError(
+      error
+    );
+
+  }
+
+}
 
 
-    resultado.textContent =
-      codigo;
+/* =========================
+   CÓDIGO DETECTADO
+========================= */
+
+function codigoDetectado(
+  codigo
+){
+
+  estado.textContent =
+    'Código encontrado';
 
 
-    if(
-      navigator.vibrate
-    ) {
-
-      navigator.vibrate(
-        [100,50,100]
-      );
-
-    }
+  resultado.style.display =
+    'block';
 
 
-    setTimeout(
-      function() {
+  resultado.textContent =
+    codigo;
 
-        regresarAplicacion(
-          codigo
-        );
 
-      },
-      500
+  if(
+    navigator.vibrate
+  ){
+
+    navigator.vibrate(
+      [100,50,100]
     );
 
   }
 
 
-  /* =========================
-     REGRESAR
-  ========================= */
+  setTimeout(
+    function(){
 
-  function regresarAplicacion(
-    codigo
-  ) {
-
-    detenerCamara();
-
-
-    if(!parametros.retorno) {
-
-      alert(
-        'Código detectado: ' +
+      regresarAplicacion(
         codigo
       );
 
-      return;
+    },
+    500
+  );
+
+}
+
+
+/* =========================
+   REGRESAR A APPS SCRIPT
+========================= */
+
+function regresarAplicacion(
+  codigo
+){
+
+  detenerScanner();
+
+
+  if(!retorno){
+
+    alert(
+      'Código detectado: ' +
+      codigo
+    );
+
+    return;
+
+  }
+
+
+  var separador =
+    retorno.includes('?')
+      ? '&'
+      : '?';
+
+
+  var url =
+
+    retorno +
+
+    separador +
+
+    'barcode=' +
+
+    encodeURIComponent(
+      codigo
+    );
+
+
+  window.location.href =
+    url;
+
+}
+
+
+/* =========================
+   DETENER
+========================= */
+
+function detenerScanner(){
+
+  try{
+
+    if(controles){
+
+      controles.stop();
+
+      controles = null;
 
     }
 
+  }
+
+  catch(e){
+
+    console.log(e);
+
+  }
+
+
+  try{
+
+    if(lector){
+
+      lector.reset();
+
+      lector = null;
+
+    }
+
+  }
+
+  catch(e){
+
+    console.log(e);
+
+  }
+
+
+  if(
+    video.srcObject
+  ){
+
+    video.srcObject
+      .getTracks()
+      .forEach(
+        function(track){
+
+          track.stop();
+
+        }
+      );
+
+    video.srcObject = null;
+
+  }
+
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+function mostrarError(
+  error
+){
+
+  var mensaje =
+    error &&
+    error.message
+      ? error.message
+      : String(error);
+
+
+  mensajeError.innerHTML =
+
+    '<strong>' +
+
+      'No se pudo iniciar el lector.'
+
+    + '</strong><br><br>' +
+
+    '<small>' +
+
+      mensaje
+
+    + '</small>';
+
+
+  errorBox.style.display =
+    'block';
+
+
+  estado.textContent =
+    'Error del lector';
+
+}
+
+
+/* =========================
+   CANCELAR
+========================= */
+
+function cerrarScanner(){
+
+  detenerScanner();
+
+
+  if(retorno){
 
     var separador =
-      parametros.retorno
-        .includes('?')
+      retorno.includes('?')
         ? '&'
         : '?';
 
 
-    var url =
+    window.location.href =
 
-      parametros.retorno +
+      retorno +
 
       separador +
 
-      'barcode=' +
-
-      encodeURIComponent(
-        codigo
-      );
-
-
-    window.location.href =
-      url;
+      'cancelado=1';
 
   }
 
+  else{
 
-  /* =========================
-     DETENER CÁMARA
-  ========================= */
-
-  function detenerCamara() {
-
-    try {
-
-      if(lector) {
-
-        lector.reset();
-
-        lector = null;
-
-      }
-
-    } catch(e) {
-
-      console.log(e);
-
-    }
-
-
-    if(streamActual) {
-
-      streamActual
-        .getTracks()
-        .forEach(
-          function(track) {
-
-            track.stop();
-
-          }
-        );
-
-      streamActual = null;
-
-    }
-
-
-    if(video.srcObject) {
-
-      video.srcObject = null;
-
-    }
+    window.history.back();
 
   }
 
-
-  /* =========================
-     ERROR
-  ========================= */
-
-  function mostrarError(
-    error
-  ) {
-
-    var nombre =
-      error &&
-      error.name
-        ? error.name
-        : 'Error';
+}
 
 
-    var mensaje =
-      error &&
-      error.message
-        ? error.message
-        : 'No se pudo acceder a la cámara.';
+/* =========================
+   LIMPIEZA
+========================= */
 
+window.addEventListener(
+  'beforeunload',
+  function(){
 
-    console.error(
-      nombre,
-      mensaje
-    );
-
-
-    var texto = '';
-
-
-    if(
-      nombre ===
-      'NotAllowedError'
-    ) {
-
-      texto =
-        'El navegador bloqueó el acceso a la cámara.<br><br>' +
-
-        'Pulsa el botón para permitir el acceso y vuelve a intentar.';
-
-    }
-
-    else if(
-      nombre ===
-      'NotFoundError'
-    ) {
-
-      texto =
-        'No se encontró ninguna cámara disponible en este dispositivo.';
-
-    }
-
-    else if(
-      nombre ===
-      'NotReadableError'
-    ) {
-
-      texto =
-        'La cámara está siendo utilizada por otra aplicación.<br><br>' +
-
-        'Cierra otras aplicaciones que estén usando la cámara y vuelve a intentar.';
-
-    }
-
-    else if(
-      nombre ===
-      'OverconstrainedError'
-    ) {
-
-      texto =
-        'La configuración solicitada para la cámara no está disponible.<br><br>' +
-
-        'Intentaremos nuevamente con otra cámara.';
-
-    }
-
-    else {
-
-      texto =
-        'No se pudo acceder a la cámara.<br><br>' +
-
-        '<small>' +
-
-        nombre +
-
-        ': ' +
-
-        mensaje +
-
-        '</small>';
-
-    }
-
-
-    mensajeError.innerHTML =
-      texto;
-
-
-    errorBox.style.display =
-      'block';
-
-
-    botonPermiso.style.display =
-      'block';
-
-
-    estado.textContent =
-      'No se pudo iniciar la cámara.';
+    detenerScanner();
 
   }
+);
 
 
-  /* =========================
-     CANCELAR
-  ========================= */
+/* =========================
+   ARRANCAR
+========================= */
 
-  function cerrarScanner() {
-
-    detenerCamara();
-
-
-    if(parametros.retorno) {
-
-      var separador =
-        parametros.retorno
-          .includes('?')
-          ? '&'
-          : '?';
-
-
-      window.location.href =
-
-        parametros.retorno +
-
-        separador +
-
-        'cancelado=1';
-
-    }
-
-    else {
-
-      window.history.back();
-
-    }
-
-  }
-
-
-  /* =========================
-     LIMPIEZA
-  ========================= */
-
-  window.addEventListener(
-    'beforeunload',
-    function() {
-
-      detenerCamara();
-
-    }
-  );
-
-
-  /* =========================
-     COMPROBAR SOPORTE
-  ========================= */
-
-  if(
-    !navigator.mediaDevices ||
-    !navigator.mediaDevices.getUserMedia
-  ) {
-
-    mostrarError({
-
-      name:
-        'Navegador no compatible',
-
-      message:
-        'Este navegador no permite utilizar la cámara desde esta página.'
-
-    });
-
-  }
-
-  else {
-
-    iniciarScanner();
-
-  }
+iniciarScanner();
 
 </script>
 
